@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConnectToDynamics365", "ConnectToDynamics365\ConnectToDynamics365.csproj", "{9F0014D7-CEED-471F-AD7A-122CB7CDF142}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediumD365.Helper", "MediumD365.Helper\MediumD365.Helper.csproj", "{F27EF83F-4705-4834-9117-9B399578D4E1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F0014D7-CEED-471F-AD7A-122CB7CDF142}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F0014D7-CEED-471F-AD7A-122CB7CDF142}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F0014D7-CEED-471F-AD7A-122CB7CDF142}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F0014D7-CEED-471F-AD7A-122CB7CDF142}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F27EF83F-4705-4834-9117-9B399578D4E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F27EF83F-4705-4834-9117-9B399578D4E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F27EF83F-4705-4834-9117-9B399578D4E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F27EF83F-4705-4834-9117-9B399578D4E1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6410AB35-5281-4110-89C6-89C41737588C}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://emregulcan.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ConnectToDynamics365\\ConnectToDynamics365.csproj
+		SccProjectName1 = ConnectToDynamics365
+		SccLocalPath1 = ConnectToDynamics365
+		SccProjectUniqueName2 = MediumD365.Helper\\MediumD365.Helper.csproj
+		SccProjectName2 = MediumD365.Helper
+		SccLocalPath2 = MediumD365.Helper
+	EndGlobalSection
+EndGlobal
