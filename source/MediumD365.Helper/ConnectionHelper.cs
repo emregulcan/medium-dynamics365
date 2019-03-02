@@ -56,7 +56,7 @@ namespace MediumD365.Helper
             {
                 result = new CrmServiceClient(connectionString);
 
-                if (callerId.HasValue && callerId.Value.Equals(Guid.Empty))
+                if (callerId.HasValue && !callerId.Value.Equals(Guid.Empty))
                 {
                     result.CallerId = callerId.Value;
                 }
