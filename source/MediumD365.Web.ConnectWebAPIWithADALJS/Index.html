@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Dynamics365 Türkiye</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.17/js/adal.min.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <script type="text/javascript">
+        var organizationURI = ""; //TODO : Dynamics 365 CE URI
+        var webapiBaseURI = `${organizationURI}/api/data/v9.1/`; //INFO : burayı değiştirmenize gerek yok
+        var tenant = ""; //TODO: Azure Tenant bilginiz (organizasyon.onmicrosoft.com formatında)
+        var clientId = ""; //TODO: Azure Active Directory Application için tanımladığınız Client Secret bilgisi
+        var redirectURI = window.location.href; //TODO: Authentication işlemi sonunda yönlendirilecek sayfa (Redirect URI)
+
+        var user, authContext;
+
+        var endpoints = {
+            orgUri: organizationURI
+        };
+
+        window.config = {
+            tenant: tenant,
+            clientId: clientId,
+            callback: callbackFunction,
+            popUp: true
+        };
+
+        $(document).ready(function () {
+            $("#pnlException").hide();
+            $("#loader").hide();
+
+            $("#btnLogin").click(function () { authContext.login(); });
+            $("#btnLogout").click(function () { authContext.logOut(); });
+            $("#btnRetrieveDataFromD365").click(function () { retrieveData(); });
+
+
+            authenticate();
+
+            if (user) {
+                console.log("USER : ");
+                console.log(user);
+
+                $(".jumbotron").hide();
+                $(".js-when-authenticated").show();
+
+                var username = `${user.profile.given_name} ${user.profile.family_name}`;
+                $("#pnlUserProfile .alert-heading").text(`Hoşgeldin ${username}`);
+            }
+            else {
+                $(".js-when-authenticated").hide();
+            }
+        });
+
+        function callbackFunction(errorDesc, token, error, tokenType) {
+            if (error) {
+                displayException(errorDesc);
+            }
+
+            //INFO : eğer config.popUp:true ise authentication ekranı (popup) kapandıktan sonra web sayfamızı yenilememiz gerekiyor.
+            if (config.popUp) {
+                window.location = authContext._getItem(authContext.CONSTANTS.STORAGE.LOGIN_REQUEST);
+            }
+        }
+
+        function authenticate() {
+            authContext = new AuthenticationContext(config);
+
+            var isCallback = authContext.isCallback(window.location.hash);
+            var loginError = authContext.getLoginError();
+
+            //INFO : eğer config.popUp:true olarak vermezsek authContext.handleWindowCallback() kullanmamız gerekli.
+            //authContext.handleWindowCallback() metodu login aşamasından sonra redirect yapıldığında gelen parametreleri parse etmekte.
+            if (isCallback) {
+                authContext.handleWindowCallback();
+
+                if (!loginError) {
+                    window.location = authContext._getItem(authContext.CONSTANTS.STORAGE.LOGIN_REQUEST);
+                }
+            }
+
+            if (loginError) {
+                displayException(loginError);
+            }
+
+            user = authContext.getCachedUser();
+        }
+
+        function retrieveData() {
+            authContext.acquireToken(organizationURI, function (errorDesc, token, error) {
+                if (error || !token) {
+                    displayException(errorDesc);
+
+                    if (config.popUp) {
+                        authContext.acquireTokenPopup(organizationURI, null, null, function (errorDesc, token, error) { });
+                    }
+                    else {
+                        authContext.acquireTokenRedirect(organizationURI, null, null);
+                    }
+                }
+                else {
+
+                    $.ajax({
+                        type: "GET",
+                        contentType: "application/json; charset=utf-8",
+                        async: true,
+                        datatype: "json",
+                        url: `${webapiBaseURI}contacts`,
+                        beforeSend: function (XMLHttpRequest) {
+                            $("#loader").show();
+                            XMLHttpRequest.setRequestHeader("OData-MaxVersion", "4.0");
+                            XMLHttpRequest.setRequestHeader("OData-Version", "4.0");
+                            XMLHttpRequest.setRequestHeader("Accept", "application/json");
+                            XMLHttpRequest.setRequestHeader("Prefer", "odata.include-annotations=\"*\"");
+                            XMLHttpRequest.setRequestHeader("Authorization", "Bearer " + token);
+                        },
+                        complete: function () {
+                            $("#loader").hide();
+                        },
+                        success: function (data) {
+                            fillData(data);
+                        },
+                        error: function (xhr, textStatus, errorThrown) {
+                            displayException("Dynamics 365 WebAPI isteği sırasında bir hata meydana geldi");
+                        }
+                    });
+                }
+            });
+        }
+
+        function fillData(data) {
+            var row = "";
+
+            for (var i = 0; i < data.value.length; i++) {
+                row += "<tr>";
+                row += `<td>${data.value[i]["fullname"]}</td>`;
+                row += `<td>${data.value[i]["emailaddress1"]}</td>`;
+                row += `<td>${data.value[i]["telephone1"]}</td>`;
+                row += "</tr>";
+            }
+
+            $('#tableCrmData tbody').html(row);
+        }
+
+        function displayException(errorDetail) {
+            $("#pnlException").show();
+            $("#pnlException .js-exception-detail").text(errorDetail);
+        }
+
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1 class="display-4">Merhaba</h1>
+            <p class="lead">
+                Dynamics 365 CE (CRM) hesabınız ile işlem yapabilmek için öncelikle giriş yapmanız gerekmektedir.
+            </p>
+            <hr class="my-4">
+            <a id="btnLogin" class="btn btn-primary btn-lg" href="#" role="button">Giriş Yap</a>
+        </div>
+
+        <div class="row js-when-authenticated">
+            <div id="pnlUserProfile" class="col-sm-12">
+                <div class="alert alert-success" role="alert">
+                    <h4 class="alert-heading"></h4>
+                    <hr>
+                    <a id="btnLogout" class="btn btn-success btn-sm" href="#" role="button">Güvenli Çıkış</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row js-when-authenticated">
+            <div class="col-sm-12">
+                <button id="btnRetrieveDataFromD365" class="btn btn-info btn-sm">Dynamics 365 datalarını yükle</button>
+                <img id="loader" src="Assets/images/ajax-loader.gif" />
+                <table id="tableCrmData" class="table table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Ad</th>
+                            <th scope="col">E-posta</th>
+                            <th scope="col">Telefon Numarası</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row js-when-error-on-authentication">
+            <div id="pnlException" class="col-sm-12">
+                <div class="alert alert-danger" role="alert">
+                    <h4 class="alert-heading">
+                        HATA
+                    </h4>
+                    <p>İşlem sırasında bir hata meydana geldi.</p>
+                    <p class="js-exception-detail"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
